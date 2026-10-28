@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_whatsapp_receipt.ReceiptScreen"
+       t-inherit="point_of_sale.ReceiptScreen"
+       t-inherit-mode="extension">
+        <!-- Tombol WhatsApp di bawah tombol Print Receipt -->
+        <xpath expr="//div[@class='buttons my-3']" position="inside">
+            <button class="button whatsapp btn btn-lg btn-whatsapp w-100 py-3 mt-2"
+                    t-on-click="onSendWhatsApp">
+                <i class="fa fa-whatsapp ms-2"/> WhatsApp
+            </button>
+        </xpath>
+    </t>
+</templates>
