@@ -1,0 +1,12 @@
+.pos .btn-whatsapp {
+    background-color: #25d366;
+    border-color: #25d366;
+    color: #fff;
+
+    &:hover,
+    &:focus {
+        background-color: #1eb85a;
+        border-color: #1eb85a;
+        color: #fff;
+    }
+}
