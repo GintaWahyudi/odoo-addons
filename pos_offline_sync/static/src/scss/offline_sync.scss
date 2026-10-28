@@ -1,0 +1,48 @@
+// Indikator status offline di header POS
+.pos-offline-status {
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.875rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &.online {
+        color: #2e7d32;
+
+        .pos-offline-status-count {
+            background-color: #2e7d32;
+            color: #fff;
+        }
+    }
+
+    &.syncing {
+        color: #1565c0;
+
+        .pos-offline-status-count {
+            background-color: #1565c0;
+            color: #fff;
+        }
+    }
+
+    &.queued {
+        color: #ef6c00;
+
+        .pos-offline-status-count {
+            background-color: #ef6c00;
+            color: #fff;
+        }
+    }
+
+    &.offline {
+        background-color: #c62828;
+        color: #fff;
+
+        .pos-offline-status-count {
+            background-color: #fff;
+            color: #c62828;
+        }
+    }
+
+    .pos-offline-status-count {
+        font-size: 0.75rem;
+    }
+}
