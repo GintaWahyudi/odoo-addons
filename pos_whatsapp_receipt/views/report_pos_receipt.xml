@@ -86,8 +86,10 @@
                             <td><strong>TOTAL</strong></td>
                             <td style="text-align:right;"><strong t-esc="o.currency_id.format(o.amount_total).replace(chr(160), ' ')"/></td>
                         </tr>
+                        <!-- Payment negatif = kembalian yang dicatat Odoo untuk balancing;
+                             disembunyikan karena sudah ada baris "Kembali" -->
                         <t t-foreach="o.payment_ids" t-as="p">
-                            <tr>
+                            <tr t-if="p.amount > 0">
                                 <td t-esc="p.payment_method_id.name"/>
                                 <td style="text-align:right;" t-esc="o.currency_id.format(p.amount).replace(chr(160), ' ')"/>
                             </tr>

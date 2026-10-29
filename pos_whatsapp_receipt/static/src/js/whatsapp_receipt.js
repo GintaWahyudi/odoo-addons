@@ -110,8 +110,12 @@ export function buildWhatsAppReceiptText(order, env) {
         out.push(line("Diskon", fmt(data.total_discount)));
     }
     out.push(line("TOTAL", `*${fmt(data.amount_total)}*`));
+    // Payment negatif = kembalian yang dicatat Odoo untuk balancing;
+    // sembunyikan (kembalian sudah tampil di baris "Kembali").
     for (const p of data.paymentlines) {
-        out.push(line(p.name, fmt(p.amount)));
+        if (p.amount > 0) {
+            out.push(line(p.name, fmt(p.amount)));
+        }
     }
     if (data.change) {
         out.push(line("Kembali", fmt(data.change)));
