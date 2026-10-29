@@ -69,9 +69,14 @@ export function buildWhatsAppReceiptText(order, env) {
     const addrLines = [
         company.street,
         company.street2,
-        [company.city, company.zip].filter(Boolean).join(" "),
+        [company.city, company.state_id && company.state_id[1], company.zip]
+            .filter(Boolean)
+            .join(" "),
+        company.country_id && company.country_id[1],
         company.phone ? `Telp: ${company.phone}` : null,
         company.vat ? `NPWP: ${company.vat}` : null,
+        company.website,
+        company.email,
     ].filter(Boolean);
     addrLines.forEach((l) => out.push(center(l)));
     if (headerText) {
@@ -105,8 +110,12 @@ export function buildWhatsAppReceiptText(order, env) {
         out.push(line("Diskon", fmt(data.total_discount)));
     }
     out.push(line("TOTAL", `*${fmt(data.amount_total)}*`));
+    // Payment negatif = kembalian yang dicatat Odoo untuk balancing;
+    // sembunyikan (kembalian sudah tampil di baris "Kembali").
     for (const p of data.paymentlines) {
-        out.push(line(p.name, fmt(p.amount)));
+        if (p.amount > 0) {
+            out.push(line(p.name, fmt(p.amount)));
+        }
     }
     if (data.change) {
         out.push(line("Kembali", fmt(data.change)));
@@ -119,6 +128,19 @@ export function buildWhatsAppReceiptText(order, env) {
     }
     out.push(center("Terima kasih!"));
     return "```\n" + out.join("\n") + "\n```";
+}
+
+/**
+ * URL publik PDF nota (diamankan access_token per-order).
+ * Hanya tersedia setelah order tersinkron ke server (server_id ada).
+ */
+export function buildReceiptPdfUrl(order, pos) {
+    const serverId = order.server_id;
+    const token = order.access_token;
+    if (!serverId || !token) {
+        return null;
+    }
+    return `${pos.base_url}/pos_whatsapp_receipt/pdf/${serverId}/${token}`;
 }
 
 patch(ReceiptScreen.prototype, {
@@ -156,7 +178,11 @@ patch(ReceiptScreen.prototype, {
             return;
         }
 
-        const text = buildWhatsAppReceiptText(order, this.env);
+        let text = buildWhatsAppReceiptText(order, this.env);
+        const pdfUrl = buildReceiptPdfUrl(order, this.pos);
+        if (pdfUrl) {
+            text += `\n\nNota PDF:\n${pdfUrl}`;
+        }
         const url = `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
         window.open(url, "_blank");
     },

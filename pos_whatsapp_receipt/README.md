@@ -9,8 +9,17 @@ menggunakan link `wa.me` — **tanpa API key, tanpa biaya**.
 2. Klik tombol hijau **WhatsApp** di bawah tombol *Print Receipt*.
 3. WhatsApp (Web/App) terbuka di tab baru dengan:
    - nomor tujuan = field `mobile`/`phone` customer di order,
-   - isi pesan = nota terformat (monospace, siap kirim).
-4. Kasir tinggal klik **kirim** di WhatsApp.
+   - isi pesan = nota terformat (monospace, siap kirim) **ditambah link
+     nota PDF** (tampilan seperti struk cetak).
+4. Kasir tinggal klik **kirim** di WhatsApp — pelanggan bisa membuka
+   link untuk melihat/mengunduh nota PDF.
+
+Link PDF berbentuk `/pos_whatsapp_receipt/pdf/<order_id>/<access_token>`
+dan diamankan token unik per-order (sama seperti tiket PoS bawaan):
+URL tidak bisa ditebak berurutan. Karena pelanggan membuka link ini
+lewat internet, fitur PDF memerlukan server Odoo yang bisa diakses
+publik (domain/HTTPS). Jika order belum tersinkron ke server,
+link otomatis tidak disertakan.
 
 Jika order tidak punya customer atau customer belum punya nomor,
 popup akan meminta nomor WhatsApp secara manual.
@@ -46,4 +55,6 @@ Tidak ada konfigurasi tambahan yang diperlukan.
   (`receipt_header`, `receipt_footer`, nama & alamat company).
 - Pesan dikirim dari akun WhatsApp milik kasir/perangkat toko
   (wa.me hanya membuka chat dengan isi pesan terisi).
+- PDF dihasilkan on-the-fly oleh report `Nota PoS (WhatsApp)`
+  (paperformat khusus 80mm ala struk thermal).
 - Diuji pada Odoo 17.0 Community.
