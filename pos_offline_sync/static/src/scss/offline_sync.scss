@@ -1,0 +1,84 @@
+// Indikator status offline di header POS — dibuat lebih dominan
+// dari ikon wifi bawaan (SyncNotification)
+.pos-offline-status {
+    cursor: pointer;
+    user-select: none;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+
+    &.online {
+        color: #2e7d32;
+
+        .pos-offline-status-count {
+            background-color: #2e7d32;
+            color: #fff;
+        }
+    }
+
+    &.syncing {
+        color: #1565c0;
+
+        .pos-offline-status-count {
+            background-color: #1565c0;
+            color: #fff;
+        }
+    }
+
+    &.queued {
+        color: #ef6c00;
+
+        .pos-offline-status-count {
+            background-color: #ef6c00;
+            color: #fff;
+        }
+    }
+
+    &.offline {
+        background-color: #c62828;
+        color: #fff;
+        animation: pos-offline-blink 1.5s ease-in-out infinite;
+
+        .pos-offline-status-count {
+            background-color: #fff;
+            color: #c62828;
+        }
+    }
+
+    .pos-offline-status-count {
+        font-size: 0.85rem;
+    }
+}
+
+@keyframes pos-offline-blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.55;
+    }
+}
+
+// Banner dominan di bawah navbar saat offline / ada antrean
+.pos-offline-banner {
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+    z-index: 10;
+
+    &.offline {
+        background-color: #c62828;
+        color: #fff;
+        animation: pos-offline-blink 1.5s ease-in-out infinite;
+    }
+
+    &.syncing {
+        background-color: #1565c0;
+        color: #fff;
+    }
+
+    &.queued {
+        background-color: #ef6c00;
+        color: #fff;
+    }
+}

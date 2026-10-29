@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_offline_sync.OfflineStatusIndicator">
+        <div class="pos-offline-status d-flex align-items-center gap-2 px-3 h-100"
+             t-att-class="statusKey"
+             role="status"
+             aria-live="polite"
+             t-att-title="title"
+             t-on-click="onClick">
+            <i t-if="statusKey === 'online'" class="fa fa-cloud" aria-hidden="true"></i>
+            <i t-if="statusKey === 'syncing'" class="fa fa-refresh fa-spin" aria-hidden="true"></i>
+            <i t-if="statusKey === 'queued'" class="fa fa-clock-o" aria-hidden="true"></i>
+            <i t-if="statusKey === 'offline'" class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+            <strong class="pos-offline-status-label" t-esc="label"/>
+            <span t-if="offlineSync.state.pending > 0"
+                  class="badge rounded-pill pos-offline-status-count"
+                  t-esc="offlineSync.state.pending"/>
+        </div>
+    </t>
+
+    <t t-name="pos_offline_sync.OfflineBanner">
+        <div t-if="isShown"
+             class="pos-offline-banner w-100 text-center py-2 px-3 fw-bold"
+             t-att-class="bannerClass"
+             role="alert"
+             t-on-click="onClick">
+            <i t-if="bannerClass === 'offline'" class="fa fa-plug me-2" aria-hidden="true"></i>
+            <i t-if="bannerClass === 'syncing'" class="fa fa-refresh fa-spin me-2" aria-hidden="true"></i>
+            <i t-if="bannerClass === 'queued'" class="fa fa-clock-o me-2" aria-hidden="true"></i>
+            <span t-esc="message"/>
+        </div>
+    </t>
+
+    <t t-name="pos_offline_sync.Navbar"
+       t-inherit="point_of_sale.Navbar"
+       t-inherit-mode="extension">
+        <xpath expr="//SyncNotification" position="before">
+            <OfflineStatusIndicator />
+        </xpath>
+    </t>
+
+    <t t-name="pos_offline_sync.Chrome"
+       t-inherit="point_of_sale.Chrome"
+       t-inherit-mode="extension">
+        <xpath expr="//div[contains(@class, 'pos-content')]" position="before">
+            <OfflineBanner />
+        </xpath>
+    </t>
+
+</templates>
