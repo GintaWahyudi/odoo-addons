@@ -4,6 +4,7 @@ import { Component } from "@odoo/owl";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
 import { useService } from "@web/core/utils/hooks";
 import { Navbar } from "@point_of_sale/app/navbar/navbar";
+import { Chrome } from "@point_of_sale/app/pos_app";
 import { patch } from "@web/core/utils/patch";
 import { _t } from "@web/core/l10n/translation";
 
@@ -47,13 +48,13 @@ export class OfflineStatusIndicator extends Component {
     get label() {
         switch (this.statusKey) {
             case "offline":
-                return _t("Offline");
+                return _t("OFFLINE");
             case "syncing":
-                return _t("Syncing…");
+                return _t("SYNCING…");
             case "queued":
-                return _t("Queued");
+                return _t("QUEUED");
             default:
-                return _t("Online");
+                return _t("ONLINE");
         }
     }
 
@@ -85,6 +86,59 @@ export class OfflineStatusIndicator extends Component {
     }
 }
 
+/**
+ * Banner dominan di bawah navbar saat koneksi putus atau ada antrean.
+ * Tidak mungkin terlewat dibanding ikon wifi bawaan.
+ */
+export class OfflineBanner extends Component {
+    static template = "pos_offline_sync.OfflineBanner";
+    static props = {};
+
+    setup() {
+        this.pos = usePos();
+        this.offlineSync = useService("offline_sync");
+    }
+
+    get syncState() {
+        return this.offlineSync.state;
+    }
+
+    get isShown() {
+        const s = this.syncState;
+        return !s.online || s.pending > 0;
+    }
+
+    get bannerClass() {
+        if (!this.syncState.online) {
+            return "offline";
+        }
+        return this.syncState.syncing ? "syncing" : "queued";
+    }
+
+    get message() {
+        const s = this.syncState;
+        if (!s.online) {
+            return s.pending > 0
+                ? _t("MODE OFFLINE — %s transaksi tersimpan lokal, akan dikirim otomatis saat online.", s.pending)
+                : _t("MODE OFFLINE — transaksi baru disimpan lokal (IndexedDB).");
+        }
+        if (s.syncing) {
+            return _t("Menyinkronkan antrean offline… sisa %s transaksi.", s.pending);
+        }
+        return _t("%s transaksi offline menunggu sinkron — klik untuk coba sekarang.", s.pending);
+    }
+
+    onClick() {
+        this.offlineSync
+            .flush(true)
+            .catch((err) => console.warn("[pos_offline_sync] flush manual gagal", err));
+    }
+}
+
 patch(Navbar, {
     components: { ...Navbar.components, OfflineStatusIndicator },
+});
+
+patch(Chrome, {
+    components: { ...Chrome.components, OfflineBanner },
 });

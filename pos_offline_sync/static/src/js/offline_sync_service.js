@@ -45,6 +45,16 @@ export const offlineSyncService = {
         });
 
         const getPos = () => env.services.pos;
+        const notify = (msg, ms = 5000) => {
+            try {
+                const n = env.services.pos_notification;
+                if (n) {
+                    n.add(msg, ms);
+                }
+            } catch (err) {
+                console.warn("[pos_offline_sync] notifikasi gagal", err);
+            }
+        };
 
         async function refreshCount() {
             try {
@@ -203,6 +213,18 @@ export const offlineSyncService = {
                     state.lastSyncAt = Date.now();
                     state.lastError = errors.join("\n");
                     state.online = true;
+
+                    if (
+                        summary.synced + summary.duplicate > 0 &&
+                        !(await offlineDB.getSyncable()).length &&
+                        (await offlineDB.count()) === 0
+                    ) {
+                        notify("Semua transaksi offline berhasil tersinkron ke server.");
+                    } else if (summary.failed > 0) {
+                        notify(
+                            `${summary.failed} transaksi gagal disinkronkan — dicoba ulang otomatis.`
+                        );
+                    }
                 }
             } finally {
                 state.syncing = false;
@@ -224,6 +246,10 @@ export const offlineSyncService = {
         }
         function onOffline() {
             state.online = false;
+            notify(
+                "Koneksi terputus — mode offline aktif, transaksi disimpan ke antrean lokal (IndexedDB).",
+                8000
+            );
         }
 
         window.addEventListener("online", onOnline);
