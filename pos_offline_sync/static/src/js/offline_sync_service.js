@@ -325,6 +325,7 @@ export const offlineSyncService = {
             state,
             flush,
             refreshCount,
+            checkConnectivity,
             destroy() {
                 clearInterval(interval);
                 clearInterval(connectivityTimer);

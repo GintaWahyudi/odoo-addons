@@ -1,6 +1,6 @@
 /** @odoo-module */
 
-import { Component } from "@odoo/owl";
+import { Component, useEffect } from "@odoo/owl";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
 import { useService } from "@web/core/utils/hooks";
 import { Navbar } from "@point_of_sale/app/navbar/navbar";
@@ -26,19 +26,26 @@ export class OfflineStatusIndicator extends Component {
     setup() {
         this.pos = usePos();
         this.offlineSync = useService("offline_sync");
+        // pos.synch 'disconnected' (sinyal yang membuat ikon wifi bawaan
+        // merah) dipakai sebagai pemicu cek konektivitas — bukan sebagai
+        // state offline, karena Odoo tidak mengembalikannya ke 'connected'
+        // tanpa push sukses sehingga status bisa nempel merah.
+        useEffect(
+            () => {
+                if (this.pos.synch?.status === "disconnected") {
+                    this.offlineSync.checkConnectivity();
+                }
+            },
+            () => [this.pos.synch?.status]
+        );
     }
 
     get syncState() {
         return this.offlineSync.state;
     }
 
-    // Offline bila heartbeat gagal ATAU push bawaan Odoo gagal
-    // (sinyal yang sama yang membuat ikon wifi bawaan jadi merah).
     get isOffline() {
-        return (
-            !this.syncState.online ||
-            this.pos.synch?.status === "disconnected"
-        );
+        return !this.syncState.online;
     }
 
     get statusKey() {
@@ -113,10 +120,7 @@ export class OfflineBanner extends Component {
     }
 
     get isOffline() {
-        return (
-            !this.syncState.online ||
-            this.pos.synch?.status === "disconnected"
-        );
+        return !this.syncState.online;
     }
 
     get isShown() {
