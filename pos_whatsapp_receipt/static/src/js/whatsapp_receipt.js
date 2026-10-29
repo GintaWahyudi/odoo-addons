@@ -75,6 +75,8 @@ export function buildWhatsAppReceiptText(order, env) {
         company.country_id && company.country_id[1],
         company.phone ? `Telp: ${company.phone}` : null,
         company.vat ? `NPWP: ${company.vat}` : null,
+        company.website,
+        company.email,
     ].filter(Boolean);
     addrLines.forEach((l) => out.push(center(l)));
     if (headerText) {

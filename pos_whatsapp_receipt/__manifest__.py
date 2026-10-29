@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'PoS WhatsApp Receipt',
-    'version': '17.0.1.1.0',
+    'version': '17.0.1.2.0',
     'category': 'Sales/Point of Sale',
     'summary': 'Kirim nota/receipt PoS ke pelanggan via WhatsApp (wa.me link)',
     'description': """
