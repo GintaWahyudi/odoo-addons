@@ -69,7 +69,10 @@ export function buildWhatsAppReceiptText(order, env) {
     const addrLines = [
         company.street,
         company.street2,
-        [company.city, company.zip].filter(Boolean).join(" "),
+        [company.city, company.state_id && company.state_id[1], company.zip]
+            .filter(Boolean)
+            .join(" "),
+        company.country_id && company.country_id[1],
         company.phone ? `Telp: ${company.phone}` : null,
         company.vat ? `NPWP: ${company.vat}` : null,
     ].filter(Boolean);
