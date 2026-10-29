@@ -32,8 +32,17 @@ export class OfflineStatusIndicator extends Component {
         return this.offlineSync.state;
     }
 
+    // Offline bila heartbeat gagal ATAU push bawaan Odoo gagal
+    // (sinyal yang sama yang membuat ikon wifi bawaan jadi merah).
+    get isOffline() {
+        return (
+            !this.syncState.online ||
+            this.pos.synch?.status === "disconnected"
+        );
+    }
+
     get statusKey() {
-        if (!this.syncState.online) {
+        if (this.isOffline) {
             return "offline";
         }
         if (this.syncState.syncing) {
@@ -61,9 +70,9 @@ export class OfflineStatusIndicator extends Component {
     get title() {
         const s = this.syncState;
         const lines = [
-            s.online
-                ? _t("Koneksi ke server OK")
-                : _t("Tidak ada koneksi — order disimpan di antrean lokal (IndexedDB)"),
+            this.isOffline
+                ? _t("Tidak ada koneksi — order disimpan di antrean lokal (IndexedDB)")
+                : _t("Koneksi ke server OK"),
             _t("Antrean offline: %s order", s.pending),
         ];
         if (s.lastResult) {
@@ -103,13 +112,20 @@ export class OfflineBanner extends Component {
         return this.offlineSync.state;
     }
 
+    get isOffline() {
+        return (
+            !this.syncState.online ||
+            this.pos.synch?.status === "disconnected"
+        );
+    }
+
     get isShown() {
         const s = this.syncState;
-        return !s.online || s.pending > 0;
+        return this.isOffline || s.pending > 0;
     }
 
     get bannerClass() {
-        if (!this.syncState.online) {
+        if (this.isOffline) {
             return "offline";
         }
         return this.syncState.syncing ? "syncing" : "queued";
@@ -117,7 +133,7 @@ export class OfflineBanner extends Component {
 
     get message() {
         const s = this.syncState;
-        if (!s.online) {
+        if (this.isOffline) {
             return s.pending > 0
                 ? _t("MODE OFFLINE — %s transaksi tersimpan lokal, akan dikirim otomatis saat online.", s.pending)
                 : _t("MODE OFFLINE — transaksi baru disimpan lokal (IndexedDB).");

@@ -235,9 +235,9 @@ export const offlineSyncService = {
 
         /**
          * navigator.onLine dan event online/offline tidak selalu akurat —
-         * misalnya toggle "Offline" di DevTools Chrome tidak mengubah
-         * navigator.onLine. Heartbeat /web/health memastikan status offline
-         * terdeteksi apapun cara koneksi terputus.
+         * misalnya toggle "Offline" di DevTools Chrome tidak mengubahnya.
+         * Heartbeat RPC berkala memastikan status offline terdeteksi apapun
+         * cara koneksi terputus.
          */
         function setOnline(value) {
             if (state.online === value) {
@@ -265,11 +265,11 @@ export const offlineSyncService = {
                 return;
             }
             try {
-                const res = await fetch("/web/health", {
-                    method: "GET",
-                    cache: "no-store",
-                });
-                setOnline(res.ok);
+                // POST JSON-RPC via orm.silent: transport yang sama dengan
+                // sync order (XHR, bukan GET yang bisa dijawab cache/service
+                // worker), tanpa dialog error saat koneksi putus.
+                await orm.silent.call("pos.order", "sync_offline_orders", [[]]);
+                setOnline(true);
             } catch (err) {
                 setOnline(false);
             }
