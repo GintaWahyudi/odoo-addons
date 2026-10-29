@@ -1,0 +1,48 @@
+.popup-airpay {
+    min-width: 340px;
+
+    .airpay-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .airpay-amount {
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .airpay-qr-box {
+        padding: 12px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        line-height: 0;
+    }
+
+    .airpay-status {
+        font-weight: 600;
+        &.successful {
+            color: #16a34a;
+        }
+        &.failed {
+            color: #dc2626;
+        }
+    }
+
+    .airpay-failed-reason {
+        color: #dc2626;
+        font-size: 0.85rem;
+    }
+
+    .airpay-link {
+        font-size: 0.75rem;
+        word-break: break-all;
+        max-width: 300px;
+    }
+
+    .airpay-ref {
+        font-size: 0.7rem;
+    }
+}

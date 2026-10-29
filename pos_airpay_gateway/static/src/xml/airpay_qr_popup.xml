@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="pos_airpay_gateway.AirpayQRPopup">
+        <div class="popup popup-airpay" t-att-class="state.status">
+            <div class="modal-header">
+                <h4 class="modal-title title">
+                    <t t-esc="props.title" />
+                </h4>
+            </div>
+            <main class="modal-body airpay-body text-center">
+                <div class="airpay-amount">
+                    <t t-esc="props.amount" />
+                </div>
+                <div class="airpay-qr-box" t-if="props.checkoutUrl">
+                    <img t-att-src="qrSrc" alt="QR Pembayaran AirPay" width="280" height="280" />
+                </div>
+                <div class="airpay-status" t-att-class="state.status">
+                    <t t-if="state.status === 'active'">
+                        <i class="fa fa-circle-o-notch fa-spin me-1" />
+                    </t>
+                    <t t-esc="statusTitle" />
+                </div>
+                <div class="airpay-failed-reason" t-if="state.failedReason">
+                    <t t-esc="state.failedReason" />
+                </div>
+                <div class="airpay-link text-muted">
+                    <a t-att-href="props.checkoutUrl" target="_blank" rel="noopener">
+                        <t t-esc="props.checkoutUrl" />
+                    </a>
+                </div>
+                <div class="airpay-ref text-muted">
+                    Ref: <t t-esc="props.referenceId" />
+                </div>
+            </main>
+            <div class="footer modal-footer">
+                <div t-if="state.status === 'active' and !state.cancelling"
+                     class="button cancel btn btn-lg btn-secondary"
+                     t-on-click="cancel">
+                    Batalkan
+                </div>
+                <div t-if="state.cancelling" class="text-muted">
+                    Membatalkan checkout...
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>
