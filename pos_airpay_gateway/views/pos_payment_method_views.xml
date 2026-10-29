@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pos_payment_method_view_form_inherit_pos_airpay" model="ir.ui.view">
+        <field name="name">pos.payment.method.form.inherit.airpay</field>
+        <field name="model">pos.payment.method</field>
+        <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='use_payment_terminal']" position="after">
+                <!-- AirPay -->
+                <field name="airpay_environment" invisible="use_payment_terminal != 'airpay'" required="use_payment_terminal == 'airpay'"/>
+                <field name="airpay_client_id" invisible="use_payment_terminal != 'airpay'" required="use_payment_terminal == 'airpay'"/>
+                <field name="airpay_secret_key" invisible="use_payment_terminal != 'airpay'" required="use_payment_terminal == 'airpay'" password="True"/>
+                <field name="airpay_merchant_ext_id" invisible="use_payment_terminal != 'airpay'" required="use_payment_terminal == 'airpay'"/>
+                <field name="airpay_store_ext_id" invisible="use_payment_terminal != 'airpay'" required="use_payment_terminal == 'airpay'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
