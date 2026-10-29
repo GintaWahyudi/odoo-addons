@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'PoS WhatsApp Receipt',
-    'version': '17.0.1.2.0',
+    'version': '17.0.1.3.0',
     'category': 'Sales/Point of Sale',
     'summary': 'Kirim nota/receipt PoS ke pelanggan via WhatsApp (wa.me link)',
     'description': """
@@ -17,6 +17,9 @@ kasir tinggal klik kirim.
     'author': 'Ginta Wahyudi',
     'license': 'LGPL-3',
     'depends': ['point_of_sale'],
+    'data': [
+        'views/report_pos_receipt.xml',
+    ],
     'assets': {
         'point_of_sale._assets_pos': [
             'pos_whatsapp_receipt/static/src/js/whatsapp_receipt.js',

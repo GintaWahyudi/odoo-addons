@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Paperformat sempit ala struk thermal 80mm -->
+    <record id="paperformat_pos_receipt" model="report.paperformat">
+        <field name="name">PoS Receipt 80mm (WhatsApp)</field>
+        <field name="format">custom</field>
+        <field name="page_height">297</field>
+        <field name="page_width">80</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">3</field>
+        <field name="margin_left">3</field>
+        <field name="margin_right">3</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_pos_receipt" model="ir.actions.report">
+        <field name="name">Nota PoS (WhatsApp)</field>
+        <field name="model">pos.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pos_whatsapp_receipt.report_pos_receipt</field>
+        <field name="report_file">pos_whatsapp_receipt.report_pos_receipt</field>
+        <field name="paperformat_id" ref="paperformat_pos_receipt"/>
+        <field name="print_report_name">'Nota-%s' % (object.pos_reference or object.name)</field>
+    </record>
+
+    <template id="report_pos_receipt">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="o.company_id"/>
+                <div style="font-family:'DejaVu Sans Mono','Courier New',monospace; font-size:11px; color:#000;">
+
+                    <!-- Header toko -->
+                    <div style="text-align:center;">
+                        <strong style="font-size:14px;" t-field="company.name"/>
+                        <t t-if="company.street"><div t-field="company.street"/></t>
+                        <t t-if="company.street2"><div t-field="company.street2"/></t>
+                        <t t-if="company.city or company.state_id or company.zip">
+                            <div>
+                                <t t-esc="', '.join(filter(None, [company.city, company.state_id.name]))"/>
+                                <t t-if="company.zip"> <t t-esc="company.zip"/></t>
+                            </div>
+                        </t>
+                        <t t-if="company.country_id"><div t-field="company.country_id.name"/></t>
+                        <t t-if="company.phone"><div>Telp: <t t-esc="company.phone"/></div></t>
+                        <t t-if="company.vat"><div>NPWP: <t t-esc="company.vat"/></div></t>
+                        <t t-if="company.website"><div t-field="company.website"/></t>
+                        <t t-if="company.email"><div t-field="company.email"/></t>
+                    </div>
+
+                    <div style="border-top:1px dashed #000; margin:6px 0;"/>
+
+                    <!-- Info order -->
+                    <table style="width:100%;">
+                        <tr><td t-esc="o.pos_reference or o.name"/></tr>
+                        <tr><td>Tgl: <t t-esc="o.date_order.strftime('%d/%m/%Y %H:%M')"/></td></tr>
+                        <tr t-if="o.user_id"><td>Kasir: <t t-esc="o.user_id.name"/></td></tr>
+                        <tr t-if="o.partner_id"><td>Customer: <t t-esc="o.partner_id.name"/></td></tr>
+                    </table>
+
+                    <div style="border-top:1px dashed #000; margin:6px 0;"/>
+
+                    <!-- Item -->
+                    <table style="width:100%; border-collapse:collapse;">
+                        <t t-foreach="o.lines" t-as="l">
+                            <t t-if="not l.combo_parent_id">
+                                <tr><td colspan="2" t-esc="l.full_product_name or l.product_id.display_name"/></tr>
+                                <tr>
+                                    <td style="padding-left:8px;">
+                                        <t t-esc="l.qty"/> x <t t-esc="o.currency_id.format(l.price_unit).replace(chr(160), ' ')"/>
+                                        <t t-if="l.discount"> (Disc. <t t-esc="l.discount"/>%)</t>
+                                    </td>
+                                    <td style="text-align:right;" t-esc="o.currency_id.format(l.price_subtotal_incl).replace(chr(160), ' ')"/>
+                                </tr>
+                            </t>
+                        </t>
+                    </table>
+
+                    <div style="border-top:1px dashed #000; margin:6px 0;"/>
+
+                    <!-- Total & pembayaran -->
+                    <table style="width:100%;">
+                        <tr>
+                            <td><strong>TOTAL</strong></td>
+                            <td style="text-align:right;"><strong t-esc="o.currency_id.format(o.amount_total).replace(chr(160), ' ')"/></td>
+                        </tr>
+                        <t t-foreach="o.payment_ids" t-as="p">
+                            <tr>
+                                <td t-esc="p.payment_method_id.name"/>
+                                <td style="text-align:right;" t-esc="o.currency_id.format(p.amount).replace(chr(160), ' ')"/>
+                            </tr>
+                        </t>
+                        <tr t-if="o.amount_return">
+                            <td>Kembali</td>
+                            <td style="text-align:right;" t-esc="o.currency_id.format(o.amount_return).replace(chr(160), ' ')"/>
+                        </tr>
+                    </table>
+
+                    <div style="border-top:1px dashed #000; margin:6px 0;"/>
+
+                    <div style="text-align:center;">Terima kasih!</div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

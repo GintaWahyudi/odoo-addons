@@ -126,6 +126,19 @@ export function buildWhatsAppReceiptText(order, env) {
     return "```\n" + out.join("\n") + "\n```";
 }
 
+/**
+ * URL publik PDF nota (diamankan access_token per-order).
+ * Hanya tersedia setelah order tersinkron ke server (server_id ada).
+ */
+export function buildReceiptPdfUrl(order, pos) {
+    const serverId = order.server_id;
+    const token = order.access_token;
+    if (!serverId || !token) {
+        return null;
+    }
+    return `${pos.base_url}/pos_whatsapp_receipt/pdf/${serverId}/${token}`;
+}
+
 patch(ReceiptScreen.prototype, {
     async onSendWhatsApp() {
         const order = this.currentOrder;
@@ -161,7 +174,11 @@ patch(ReceiptScreen.prototype, {
             return;
         }
 
-        const text = buildWhatsAppReceiptText(order, this.env);
+        let text = buildWhatsAppReceiptText(order, this.env);
+        const pdfUrl = buildReceiptPdfUrl(order, this.pos);
+        if (pdfUrl) {
+            text += `\n\nNota PDF:\n${pdfUrl}`;
+        }
         const url = `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
         window.open(url, "_blank");
     },
