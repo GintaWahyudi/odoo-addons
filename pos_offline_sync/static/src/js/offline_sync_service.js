@@ -8,6 +8,7 @@ import { mirrorOrderToIndexedDB } from "./pos_db_offline";
 
 const BATCH_SIZE = 20;
 const FLUSH_INTERVAL_MS = 30000;
+const CONNECTIVITY_CHECK_MS = 15000;
 const BASE_RETRY_MS = 5000;
 const MAX_RETRY_MS = 5 * 60 * 1000;
 const SYNCING_STALE_MS = 60000;
@@ -115,12 +116,12 @@ export const offlineSyncService = {
                 return;
             }
             if (!navigator.onLine) {
-                state.online = false;
+                setOnline(false);
                 if (!force) {
                     return;
                 }
-            } else {
-                state.online = true;
+            } else if (!state.online && !force) {
+                return;
             }
 
             state.syncing = true;
@@ -156,7 +157,7 @@ export const offlineSyncService = {
                     } catch (err) {
                         // RPC gagal (koneksi putus / error server):
                         // kembalikan seluruh batch ke pending + backoff.
-                        state.online = navigator.onLine;
+                        setOnline(false);
                         state.lastError = errorMessage(err);
                         await failBatch(batch, err);
                         break;
@@ -212,7 +213,7 @@ export const offlineSyncService = {
                     state.lastResult = summary;
                     state.lastSyncAt = Date.now();
                     state.lastError = errors.join("\n");
-                    state.online = true;
+                    setOnline(true);
 
                     if (
                         summary.synced + summary.duplicate > 0 &&
@@ -232,34 +233,72 @@ export const offlineSyncService = {
             }
         }
 
+        /**
+         * navigator.onLine dan event online/offline tidak selalu akurat —
+         * misalnya toggle "Offline" di DevTools Chrome tidak mengubah
+         * navigator.onLine. Heartbeat /web/health memastikan status offline
+         * terdeteksi apapun cara koneksi terputus.
+         */
+        function setOnline(value) {
+            if (state.online === value) {
+                return;
+            }
+            state.online = value;
+            if (!value) {
+                notify(
+                    "Koneksi terputus — mode offline aktif, transaksi disimpan ke antrean lokal (IndexedDB).",
+                    8000
+                );
+            } else {
+                state.lastError = "";
+                offlineDB
+                    .resetRetries()
+                    .catch(() => {})
+                    .finally(() => flush().catch(safeFlushError));
+                notify("Koneksi kembali — menyinkronkan antrean offline…", 4000);
+            }
+        }
+
+        async function checkConnectivity() {
+            if (!navigator.onLine) {
+                setOnline(false);
+                return;
+            }
+            try {
+                const res = await fetch("/web/health", {
+                    method: "GET",
+                    cache: "no-store",
+                });
+                setOnline(res.ok);
+            } catch (err) {
+                setOnline(false);
+            }
+        }
+
         function onOnline() {
-            state.online = true;
-            state.lastError = "";
-            offlineDB
-                .resetRetries()
-                .catch(() => {})
-                .finally(() => flush().catch(safeFlushError));
+            checkConnectivity();
         }
 
         function safeFlushError(err) {
             console.warn("[pos_offline_sync] flush error", err);
         }
         function onOffline() {
-            state.online = false;
-            notify(
-                "Koneksi terputus — mode offline aktif, transaksi disimpan ke antrean lokal (IndexedDB).",
-                8000
-            );
+            setOnline(false);
         }
 
         window.addEventListener("online", onOnline);
         window.addEventListener("offline", onOffline);
 
+        const connectivityTimer = setInterval(
+            checkConnectivity,
+            CONNECTIVITY_CHECK_MS
+        );
+
         const interval = setInterval(() => {
-            if (navigator.onLine) {
+            if (state.online) {
                 flush().catch(safeFlushError);
             } else {
-                state.online = false;
+                checkConnectivity();
             }
         }, FLUSH_INTERVAL_MS);
 
@@ -277,6 +316,7 @@ export const offlineSyncService = {
                 console.warn("[pos_offline_sync] init gagal", err);
             } finally {
                 await refreshCount();
+                checkConnectivity();
             }
         };
         init();
@@ -287,6 +327,7 @@ export const offlineSyncService = {
             refreshCount,
             destroy() {
                 clearInterval(interval);
+                clearInterval(connectivityTimer);
                 window.removeEventListener("online", onOnline);
                 window.removeEventListener("offline", onOffline);
             },
